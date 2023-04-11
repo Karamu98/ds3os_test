@@ -123,12 +123,11 @@ unsigned char S_OriginalFunctionBytes[S_OriginalFuncLen];
 extern "C" void* __fastcall HookAction(void* arg1_rax)
 {
 	float* LoSTime = (float*)((unsigned char*)arg1_rax + 0x2910);
+	const float CurrentLoSTime = *LoSTime;
 	*LoSTime = 10.0f;
+	Log("Set LockOn LoS Timeout time from: %f to %f", CurrentLoSTime, *LoSTime);
 
-	// TODO: Make this hook action less fragile so we can do stuff like *simply logging*
-	//Success("Did something!");
-	//Log("Current LoS Time: %f", *LoSTime);
-	
+	// Return the address needed for the mov instruction we replaced to use in the wrapper
 	void* Dest = S_ASM_BASE_ADDRESS + ((unsigned char*)0x4766CA0);
 	return Dest;
 }
