@@ -21,6 +21,14 @@ SET(SOURCES
     Hooks/ReplaceServerAddressHook.cpp
     Hooks/ChangeSaveGameFilenameHook.h
     Hooks/ChangeSaveGameFilenameHook.cpp
+
+    Hooks/LockOnAdjustHook.h
+    Hooks/LockOnAdjustHook.cpp
+
+
+    ASM/ASMGlobals.h
+    ASM/ASMGlobals.cpp
+    ASM/LockOnAdjustHookWrapper.asm
 )
  
 add_library(${PROJECT_NAME} SHARED ${SOURCES} ${PLATFORM_SOURCES})

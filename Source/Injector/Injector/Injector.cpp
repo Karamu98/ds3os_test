@@ -30,6 +30,10 @@
 
 #include <Windows.h>
 
+
+// Karamu hooks
+#include "Injector/Hooks/LockOnAdjustHook.h"
+
 // Use different save file.
 // add checkbox to ui to show debug window.
 
@@ -110,6 +114,9 @@ bool Injector::Init()
     {
         Hooks.push_back(std::make_unique<ChangeSaveGameFilenameHook>());
     }
+
+    // Karamu98 extra hooks TODO: Improve this!
+    Hooks.push_back(std::make_unique<LockOnAdjustHook>());
 
     Log("Installing hooks ...");
     bool AllInstalled = true;
