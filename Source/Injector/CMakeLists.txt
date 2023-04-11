@@ -5,6 +5,8 @@
 
 project(Injector C CXX)
 
+enable_language(ASM_MASM)
+
 SET(SOURCES
     Entry.cpp
 
