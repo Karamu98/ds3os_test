@@ -32,7 +32,8 @@
 
 
 // Karamu hooks
-#include "Injector/Hooks/LockOnAdjustHook.h"
+#include "ASM/ASMGlobals.h"
+#include "Hooks/Advanced/LockOnAdjustHook.h"
 
 // Use different save file.
 // add checkbox to ui to show debug window.
@@ -116,6 +117,7 @@ bool Injector::Init()
     }
 
     // Karamu98 extra hooks TODO: Improve this!
+    S_ASM_BASE_ADDRESS = GetBaseAddress();
     Hooks.push_back(std::make_unique<LockOnAdjustHook>());
 
     Log("Installing hooks ...");
@@ -166,6 +168,11 @@ void Injector::RunUntilQuit()
     while (!QuitRecieved)
     {
         // TODO: Do any polling we need to do here ...
+
+        for(const auto& Hook : Hooks)
+        {
+            Hook->Update();
+        }
 
         std::this_thread::sleep_for(std::chrono::milliseconds(1));
     }

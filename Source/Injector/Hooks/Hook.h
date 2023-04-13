@@ -9,13 +9,14 @@
 
 #pragma once
 
+#include <cstdint>
+
 class Injector;
 
 // Base class for all detour hooks.
 class Hook
 {
 public:
-
     // Installs the hook, returns true on success.
     virtual bool Install(Injector& injector) = 0;
 
@@ -25,4 +26,5 @@ public:
     // Gets a descriptive name for what this hook is doing.
     virtual const char* GetName() = 0;
 
+    virtual void Update() {}
 };
