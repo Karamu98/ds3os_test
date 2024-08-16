@@ -19,10 +19,17 @@ SET(SOURCES
 
     Hooks/Hook.h
     Hooks/Hook.cpp
-    Hooks/ReplaceServerAddressHook.h
-    Hooks/ReplaceServerAddressHook.cpp
-    Hooks/ChangeSaveGameFilenameHook.h
-    Hooks/ChangeSaveGameFilenameHook.cpp
+    Hooks/DarkSouls3/DS3_ReplaceServerAddressHook.h
+    Hooks/DarkSouls3/DS3_ReplaceServerAddressHook.cpp
+    Hooks/DarkSouls2/DS2_ReplaceServerAddressHook.h
+    Hooks/DarkSouls2/DS2_ReplaceServerAddressHook.cpp
+    Hooks/DarkSouls2/DS2_LogProtobufsHook.h
+    Hooks/DarkSouls2/DS2_LogProtobufsHook.cpp
+    Hooks/Shared/ReplaceServerPortHook.h
+    Hooks/Shared/ReplaceServerPortHook.cpp
+    Hooks/Shared/ChangeSaveGameFilenameHook.h
+    Hooks/Shared/ChangeSaveGameFilenameHook.cpp
+
 
     Hooks/Advanced/AdvancedHook.h
     Hooks/Advanced/AdvancedHook.cpp
@@ -32,8 +39,7 @@ SET(SOURCES
 
     ASM/ASMGlobals.h
     ASM/ASMGlobals.cpp
-    ASM/LockOnAdjustHookWrapper.asm
-)
+    ASM/LockOnAdjustHookWrapper.asm)
  
 add_library(${PROJECT_NAME} SHARED ${SOURCES} ${PLATFORM_SOURCES})
 

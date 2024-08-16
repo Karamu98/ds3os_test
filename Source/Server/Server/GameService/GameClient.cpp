@@ -24,7 +24,7 @@
 #include "Config/BuildConfig.h"
 #include "Config/RuntimeConfig.h"
 
-#include "Protobuf/Protobufs.h"
+#include "Protobuf/SharedProtobufs.h"
 
 GameClient::GameClient(GameService* OwningService, std::shared_ptr<NetConnection> InConnection, const std::vector<uint8_t>& CwcKey, uint64_t InAuthToken)
     : Service(OwningService)
@@ -33,19 +33,13 @@ GameClient::GameClient(GameService* OwningService, std::shared_ptr<NetConnection
 {
     LastMessageRecievedTime = GetSeconds();
 
-    MessageStream = std::make_shared<Frpg2ReliableUdpMessageStream>(InConnection, CwcKey, AuthToken);
+    MessageStream = std::make_shared<Frpg2ReliableUdpMessageStream>(InConnection, CwcKey, AuthToken, false, &Service->GetServer()->GetGameInterface());
+
+    State = Service->GetServer()->GetGameInterface().CreatePlayerState();
 }
 
 bool GameClient::Poll()
 {
-    // Has this client timed out?
-    double TimeSinceLastMessage = GetSeconds() - LastMessageRecievedTime;
-    if (TimeSinceLastMessage >= BuildConfig::CLIENT_TIMEOUT)
-    {
-        WarningS(GetName().c_str(), "Client timed out.");
-        return true;
-    }
-
     // If we've got a delayed disconnect pending, check if we should disconnect them now.
     if (DisconnectTime > 0.0 && GetSeconds() > DisconnectTime)
     {
@@ -85,7 +79,7 @@ bool GameClient::Poll()
             }
             else
             {
-                WarningS(GetName().c_str(), "Failed to handle message, ignoring and hoping nothing breaks ...");
+                WarningS(GetName().c_str(), "Failed to handle message '%s', ignoring and hoping nothing breaks ...", Message.Protobuf ? Message.Protobuf->GetTypeName().c_str() : "Unknown");
             }
         }
 
@@ -95,6 +89,14 @@ bool GameClient::Poll()
 
     // Update lat recieved time.
     LastMessageRecievedTime = MessageStream->GetLastActivityTime();
+
+    // Has this client timed out?
+    double TimeSinceLastMessage = GetSeconds() - LastMessageRecievedTime;
+    if (TimeSinceLastMessage >= BuildConfig::CLIENT_TIMEOUT)
+    {
+        WarningS(GetName().c_str(), "Client timed out.");
+        return true;
+    }
 
     // Keep authentication token alive while client is..
     Service->RefreshAuthToken(AuthToken);
@@ -134,24 +136,5 @@ std::string GameClient::GetName()
 
 void GameClient::SendTextMessage(const std::string& TextMessage)
 {
-    Frpg2RequestMessage::ManagementTextMessage Message;
-    Message.set_push_message_id(Frpg2RequestMessage::PushID_ManagementTextMessage);
-    Message.set_message(TextMessage);
-    Message.set_unknown_4(0);
-    Message.set_unknown_5(0);
-
-    // Date makes no difference, just hard-code for now.
-    Frpg2PlayerData::DateTime* DateTime = Message.mutable_timestamp();
-    DateTime->set_year(2021);
-    DateTime->set_month(1);
-    DateTime->set_day(1);
-    DateTime->set_hours(0);
-    DateTime->set_minutes(0);
-    DateTime->set_seconds(0);
-    DateTime->set_tzdiff(0);
-
-    if (!MessageStream->Send(&Message))
-    {
-        WarningS(GetName().c_str(), "Failed to send game client text message.");
-    }
+    Service->GetServer()->GetGameInterface().SendManagementMessage(*MessageStream, TextMessage);
 }

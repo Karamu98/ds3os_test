@@ -19,9 +19,12 @@
 
 #include <array>
 
+#include <Rpc.h>
+
 #if defined(_WIN32)
 // Link to the windows socket library.
 #pragma comment(lib, "Ws2_32.lib")
+#pragma comment(lib, "rpcrt4.lib")
 #endif
 
 struct Win32CtrlSignalHandler
@@ -53,9 +56,29 @@ public:
 
 } gWin32CtrlSignalHandler;
 
+LONG WINAPI ExceptionHandler(PEXCEPTION_POINTERS pExceptionInfo)
+{
+    Log("================== Crash Log ==================");
+
+    std::unique_ptr<Callstack> Stack = CaptureCallstack(1);
+    for (auto& Frame : Stack->Frames)
+    {
+        Log("0x%016zx %-50s %s@%zi", 
+            Frame.Address, 
+            Frame.Function.empty() ? "<unknown>" : Frame.Function.c_str(), 
+            Frame.Filename.empty() ? "<unknown>" : Frame.Filename.c_str(),
+            Frame.Line
+        );
+    }
+
+    return EXCEPTION_CONTINUE_SEARCH;
+}
+
 bool PlatformInit()
 {
     LoadSymbols();
+
+    SetUnhandledExceptionFilter(ExceptionHandler);
 
     WSADATA wsaData;
     if (int Result = WSAStartup(MAKEWORD(2, 2), &wsaData); Result != 0) 
@@ -215,4 +238,19 @@ std::unique_ptr<Callstack> CaptureCallstack(size_t FrameOffset, size_t FrameCoun
     }
 
     return std::move(result);
+}
+
+std::string MakeGUID()
+{
+    UUID uuid;
+    UuidCreate(&uuid);
+
+    unsigned char* str;
+    UuidToStringA(&uuid, &str);
+
+    std::string result((char*)str);
+
+    RpcStringFreeA(&str);
+
+    return result;
 }
